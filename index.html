@@ -1,0 +1,1275 @@
+```html
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>日期日程查询</title>
+
+<!-- 农历库 -->
+<script src="https://cdn.jsdelivr.net/npm/lunar-javascript@1.6.12/lunar.js"></script>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+:root {
+    --bg: #eef2f7;
+    --card: rgba(255,255,255,.92);
+    --text: #1f2937;
+    --subtext: #64748b;
+    --border: #e2e8f0;
+    --input: #f8fafc;
+    --shadow: 0 20px 60px rgba(0,0,0,.12);
+}
+
+body.dark {
+    --bg: #0f172a;
+    --card: rgba(30,41,59,.94);
+    --text: #f8fafc;
+    --subtext: #94a3b8;
+    --border: #334155;
+    --input: #1e293b;
+    --shadow: 0 20px 60px rgba(0,0,0,.35);
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    padding: 30px 15px;
+
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        "Microsoft YaHei",
+        sans-serif;
+
+    background:
+        radial-gradient(circle at top left, rgba(99,102,241,.15), transparent 35%),
+        radial-gradient(circle at bottom right, rgba(14,165,233,.12), transparent 35%),
+        var(--bg);
+
+    color: var(--text);
+
+    transition:
+        background .3s,
+        color .3s;
+}
+
+.container {
+    width: 100%;
+    max-width: 1000px;
+    margin: auto;
+}
+
+.card {
+    background: var(--card);
+    backdrop-filter: blur(15px);
+
+    border: 1px solid var(--border);
+
+    border-radius: 28px;
+
+    padding: 35px;
+
+    box-shadow: var(--shadow);
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    margin-bottom: 30px;
+}
+
+.title-area h1 {
+    margin: 0;
+    font-size: 32px;
+}
+
+.title-area p {
+    margin: 8px 0 0;
+    color: var(--subtext);
+}
+
+.theme-btn {
+    width: 46px;
+    height: 46px;
+
+    border: 1px solid var(--border);
+
+    border-radius: 50%;
+
+    background: var(--input);
+
+    cursor: pointer;
+
+    font-size: 20px;
+}
+
+.search-area {
+    display: flex;
+    gap: 10px;
+
+    margin-bottom: 28px;
+}
+
+input[type="date"] {
+    flex: 1;
+
+    min-width: 0;
+
+    padding: 14px 16px;
+
+    border-radius: 14px;
+
+    border: 1px solid var(--border);
+
+    background: var(--input);
+
+    color: var(--text);
+
+    font-size: 16px;
+
+    outline: none;
+}
+
+button {
+    border: none;
+
+    padding: 12px 18px;
+
+    border-radius: 12px;
+
+    font-size: 15px;
+
+    cursor: pointer;
+
+    background: #4f46e5;
+
+    color: white;
+
+    transition: .2s;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.08);
+}
+
+.secondary {
+    background: #64748b;
+}
+
+/* 今日结果 */
+
+.result {
+    padding: 30px;
+
+    border-radius: 22px;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(99,102,241,.10),
+            rgba(14,165,233,.08)
+        );
+
+    text-align: center;
+
+    margin-bottom: 30px;
+}
+
+.result-date {
+    color: var(--subtext);
+
+    font-size: 17px;
+}
+
+.result-lunar {
+    color: var(--subtext);
+
+    font-size: 14px;
+
+    margin-top: 7px;
+}
+
+.schedule-icon {
+    font-size: 52px;
+
+    margin: 12px 0 2px;
+}
+
+.schedule {
+    font-size: 46px;
+
+    font-weight: 800;
+
+    margin: 0;
+}
+
+.cycle {
+    color: var(--subtext);
+
+    margin-top: 10px;
+
+    font-size: 14px;
+}
+
+/* 月份控制 */
+
+.month-header {
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 18px;
+}
+
+.month-title {
+    font-size: 22px;
+
+    font-weight: 700;
+}
+
+.month-buttons {
+    display: flex;
+
+    gap: 8px;
+}
+
+.month-buttons button {
+    padding: 8px 13px;
+
+    background: var(--input);
+
+    color: var(--text);
+
+    border: 1px solid var(--border);
+}
+
+/* 日历 */
+
+.calendar {
+    display: grid;
+
+    grid-template-columns: repeat(7, 1fr);
+
+    gap: 8px;
+}
+
+.weekday {
+    text-align: center;
+
+    color: var(--subtext);
+
+    font-size: 13px;
+
+    padding: 7px;
+}
+
+.day {
+    min-height: 86px;
+
+    padding: 8px;
+
+    border-radius: 14px;
+
+    background: var(--input);
+
+    border: 1px solid transparent;
+
+    cursor: pointer;
+
+    transition: .2s;
+
+    text-align: center;
+
+    position: relative;
+}
+
+.day:hover {
+    transform: translateY(-2px);
+
+    border-color: #818cf8;
+
+    background: rgba(99,102,241,.1);
+}
+
+.day.today {
+    border: 2px solid #4f46e5;
+}
+
+.day.selected {
+    background: #4f46e5;
+
+    color: white;
+}
+
+.day-number {
+    font-weight: 700;
+
+    font-size: 16px;
+
+    margin-bottom: 5px;
+}
+
+.day-icon {
+    font-size: 18px;
+}
+
+.day-name {
+    font-size: 11px;
+
+    margin-top: 3px;
+
+    opacity: .8;
+}
+
+.lunar {
+    font-size: 9px;
+
+    color: var(--subtext);
+
+    margin-top: 4px;
+}
+
+.selected .lunar,
+.selected .day-name {
+    color: rgba(255,255,255,.8);
+}
+
+/* 图例 */
+
+.legend {
+    display: grid;
+
+    grid-template-columns: repeat(4, 1fr);
+
+    gap: 10px;
+
+    margin-top: 28px;
+}
+
+.legend-item {
+    padding: 12px;
+
+    border-radius: 12px;
+
+    background: var(--input);
+
+    border: 1px solid var(--border);
+
+    text-align: center;
+
+    font-size: 13px;
+}
+
+.legend-icon {
+    font-size: 22px;
+
+    margin-bottom: 4px;
+}
+
+/* 页脚 */
+
+.footer {
+    text-align: center;
+
+    color: var(--subtext);
+
+    font-size: 12px;
+
+    margin-top: 25px;
+}
+
+/* 手机 */
+
+@media (max-width: 700px) {
+
+    body {
+        padding: 12px;
+    }
+
+    .card {
+        padding: 20px 14px;
+
+        border-radius: 22px;
+    }
+
+    .title-area h1 {
+        font-size: 25px;
+    }
+
+    .header {
+        margin-bottom: 22px;
+    }
+
+    .search-area {
+        flex-wrap: wrap;
+    }
+
+    input[type="date"] {
+        flex-basis: 100%;
+    }
+
+    .search-area button {
+        flex: 1;
+    }
+
+    .result {
+        padding: 25px 15px;
+    }
+
+    .schedule {
+        font-size: 38px;
+    }
+
+    .calendar {
+        gap: 4px;
+    }
+
+    .day {
+        min-height: 65px;
+
+        padding: 5px;
+
+        border-radius: 9px;
+    }
+
+    .day-icon {
+        font-size: 15px;
+    }
+
+    .day-number {
+        font-size: 14px;
+    }
+
+    .day-name {
+        font-size: 9px;
+    }
+
+    .lunar {
+        display: none;
+    }
+
+    .legend {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="card">
+
+    <!-- 顶部 -->
+
+    <div class="header">
+
+        <div class="title-area">
+            <h1>📅 日期日程</h1>
+
+            <p>
+                八日循环日程查询
+            </p>
+        </div>
+
+        <button
+            class="theme-btn"
+            onclick="toggleTheme()"
+            id="themeButton"
+        >
+            🌙
+        </button>
+
+    </div>
+
+
+    <!-- 日期查询 -->
+
+    <div class="search-area">
+
+        <input
+            type="date"
+            id="dateInput"
+        >
+
+        <button onclick="queryDate()">
+            查询
+        </button>
+
+        <button
+            class="secondary"
+            onclick="goToday()"
+        >
+            今天
+        </button>
+
+    </div>
+
+
+    <!-- 查询结果 -->
+
+    <div class="result">
+
+        <div
+            class="result-date"
+            id="resultDate"
+        ></div>
+
+        <div
+            class="result-lunar"
+            id="resultLunar"
+        ></div>
+
+        <div
+            class="schedule-icon"
+            id="scheduleIcon"
+        ></div>
+
+        <div
+            class="schedule"
+            id="scheduleText"
+        ></div>
+
+        <div
+            class="cycle"
+            id="cycleInfo"
+        ></div>
+
+    </div>
+
+
+    <!-- 月份 -->
+
+    <div class="month-header">
+
+        <div
+            class="month-title"
+            id="monthTitle"
+        ></div>
+
+        <div class="month-buttons">
+
+            <button onclick="previousMonth()">
+                ‹
+            </button>
+
+            <button onclick="goToday()">
+                今天
+            </button>
+
+            <button onclick="nextMonth()">
+                ›
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- 日历 -->
+
+    <div
+        class="calendar"
+        id="calendar"
+    ></div>
+
+
+    <!-- 图例 -->
+
+    <div
+        class="legend"
+        id="legend"
+    ></div>
+
+
+    <div class="footer">
+        2026年9月10日设定为「黄沙」，之后每8天循环一次
+    </div>
+
+</div>
+
+</div>
+
+
+<script>
+
+/* ============================================
+   八日循环配置
+============================================ */
+
+const schedules = [
+
+    {
+        name: "黄沙",
+        icon: "🏜️",
+        color: "#d97706"
+    },
+
+    {
+        name: "黑泥沼",
+        icon: "🌑",
+        color: "#475569"
+    },
+
+    {
+        name: "工厂",
+        icon: "🏭",
+        color: "#64748b"
+    },
+
+    {
+        name: "密林",
+        icon: "🌲",
+        color: "#16a34a"
+    },
+
+    {
+        name: "黑珍珠",
+        icon: "🖤",
+        color: "#7c3aed"
+    },
+
+    {
+        name: "海岛",
+        icon: "🏝️",
+        color: "#0891b2"
+    },
+
+    {
+        name: "山脚",
+        icon: "⛰️",
+        color: "#15803d"
+    },
+
+    {
+        name: "秋日",
+        icon: "🍂",
+        color: "#ea580c"
+    }
+
+];
+
+
+/* ============================================
+   基准日期
+============================================ */
+
+// 2026年9月10日 = 黄沙
+
+const baseDate =
+    new Date(2026, 8, 10);
+
+
+/* 当前选中的日期 */
+
+let selectedDate =
+    new Date();
+
+
+/* 当前显示的月份 */
+
+let currentMonth =
+    new Date();
+
+
+/* ============================================
+   日期处理
+============================================ */
+
+function normalizeDate(date) {
+
+    return new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate()
+    );
+
+}
+
+
+function dateDifference(date1, date2) {
+
+    const day =
+        24 * 60 * 60 * 1000;
+
+    return Math.round(
+        (
+            normalizeDate(date1)
+            -
+            normalizeDate(date2)
+        ) / day
+    );
+
+}
+
+
+/* ============================================
+   获取日程
+============================================ */
+
+function getSchedule(date) {
+
+    const difference =
+        dateDifference(date, baseDate);
+
+    const index =
+        (
+            (
+                difference
+                %
+                schedules.length
+            )
+            +
+            schedules.length
+        )
+        %
+        schedules.length;
+
+    return {
+
+        ...schedules[index],
+
+        index,
+
+        difference
+
+    };
+
+}
+
+
+/* ============================================
+   农历
+============================================ */
+
+function getLunar(date) {
+
+    try {
+
+        const lunar =
+            Solar.fromYmd(
+                date.getFullYear(),
+                date.getMonth() + 1,
+                date.getDate()
+            ).getLunar();
+
+        return lunar.toString();
+
+    } catch (e) {
+
+        return "";
+
+    }
+
+}
+
+
+/* ============================================
+   日期格式化
+============================================ */
+
+function formatDate(date) {
+
+    const weekdays = [
+        "星期日",
+        "星期一",
+        "星期二",
+        "星期三",
+        "星期四",
+        "星期五",
+        "星期六"
+    ];
+
+    return `
+        ${date.getFullYear()}年
+        ${date.getMonth() + 1}月
+        ${date.getDate()}日
+        ${weekdays[date.getDay()]}
+    `;
+
+}
+
+
+function dateToInput(date) {
+
+    return `${date.getFullYear()}-${
+        String(date.getMonth() + 1).padStart(2,"0")
+    }-${
+        String(date.getDate()).padStart(2,"0")
+    }`;
+
+}
+
+
+function inputToDate(value) {
+
+    const parts =
+        value.split("-").map(Number);
+
+    return new Date(
+        parts[0],
+        parts[1] - 1,
+        parts[2]
+    );
+
+}
+
+
+/* ============================================
+   显示日期
+============================================ */
+
+function showDate(date) {
+
+    selectedDate =
+        normalizeDate(date);
+
+    currentMonth =
+        new Date(
+            date.getFullYear(),
+            date.getMonth(),
+            1
+        );
+
+    const result =
+        getSchedule(date);
+
+    document.getElementById(
+        "dateInput"
+    ).value =
+        dateToInput(date);
+
+
+    document.getElementById(
+        "resultDate"
+    ).textContent =
+        formatDate(date);
+
+
+    document.getElementById(
+        "resultLunar"
+    ).textContent =
+        getLunar(date);
+
+
+    document.getElementById(
+        "scheduleIcon"
+    ).textContent =
+        result.icon;
+
+
+    document.getElementById(
+        "scheduleText"
+    ).textContent =
+        result.name;
+
+
+    document.getElementById(
+        "scheduleText"
+    ).style.color =
+        result.color;
+
+
+    document.getElementById(
+        "cycleInfo"
+    ).textContent =
+        `八日循环 · 第 ${result.index + 1} 天`;
+
+
+    renderCalendar();
+
+}
+
+
+/* ============================================
+   查询
+============================================ */
+
+function queryDate() {
+
+    const value =
+        document.getElementById(
+            "dateInput"
+        ).value;
+
+    if (!value) return;
+
+    showDate(
+        inputToDate(value)
+    );
+
+}
+
+
+function goToday() {
+
+    showDate(
+        new Date()
+    );
+
+}
+
+
+/* ============================================
+   月份切换
+============================================ */
+
+function previousMonth() {
+
+    currentMonth =
+        new Date(
+            currentMonth.getFullYear(),
+            currentMonth.getMonth() - 1,
+            1
+        );
+
+    renderCalendar();
+
+}
+
+
+function nextMonth() {
+
+    currentMonth =
+        new Date(
+            currentMonth.getFullYear(),
+            currentMonth.getMonth() + 1,
+            1
+        );
+
+    renderCalendar();
+
+}
+
+
+/* ============================================
+   渲染日历
+============================================ */
+
+function renderCalendar() {
+
+    const calendar =
+        document.getElementById(
+            "calendar"
+        );
+
+    calendar.innerHTML = "";
+
+
+    const year =
+        currentMonth.getFullYear();
+
+    const month =
+        currentMonth.getMonth();
+
+
+    document.getElementById(
+        "monthTitle"
+    ).textContent =
+        `${year}年${month + 1}月`;
+
+
+    /* 星期 */
+
+    const weekdays =
+        [
+            "日",
+            "一",
+            "二",
+            "三",
+            "四",
+            "五",
+            "六"
+        ];
+
+
+    weekdays.forEach(
+        day => {
+
+            const div =
+                document.createElement("div");
+
+            div.className =
+                "weekday";
+
+            div.textContent =
+                day;
+
+            calendar.appendChild(div);
+
+        }
+    );
+
+
+    /* 当月第一天 */
+
+    const firstDay =
+        new Date(
+            year,
+            month,
+            1
+        );
+
+
+    /* 当月天数 */
+
+    const days =
+        new Date(
+            year,
+            month + 1,
+            0
+        ).getDate();
+
+
+    /* 前面的空白 */
+
+    for (
+        let i = 0;
+        i < firstDay.getDay();
+        i++
+    ) {
+
+        const empty =
+            document.createElement("div");
+
+        calendar.appendChild(empty);
+
+    }
+
+
+    const today =
+        normalizeDate(
+            new Date()
+        );
+
+
+    /* 日期 */
+
+    for (
+        let day = 1;
+        day <= days;
+        day++
+    ) {
+
+        const date =
+            new Date(
+                year,
+                month,
+                day
+            );
+
+
+        const result =
+            getSchedule(date);
+
+
+        const div =
+            document.createElement("div");
+
+
+        div.className =
+            "day";
+
+
+        /* 今天 */
+
+        if (
+            date.getTime()
+            ===
+            today.getTime()
+        ) {
+
+            div.classList.add(
+                "today"
+            );
+
+        }
+
+
+        /* 当前选择 */
+
+        if (
+            date.getTime()
+            ===
+            selectedDate.getTime()
+        ) {
+
+            div.classList.add(
+                "selected"
+            );
+
+        }
+
+
+        const lunar =
+            getLunar(date);
+
+
+        div.innerHTML = `
+
+            <div class="day-number">
+                ${day}
+            </div>
+
+            <div
+                class="day-icon"
+                title="${result.name}"
+            >
+                ${result.icon}
+            </div>
+
+            <div class="day-name">
+                ${result.name}
+            </div>
+
+            <div class="lunar">
+                ${lunar}
+            </div>
+
+        `;
+
+
+        div.onclick =
+            () => showDate(date);
+
+
+        calendar.appendChild(div);
+
+    }
+
+
+    renderLegend();
+
+}
+
+
+/* ============================================
+   图例
+============================================ */
+
+function renderLegend() {
+
+    const legend =
+        document.getElementById(
+            "legend"
+        );
+
+    legend.innerHTML = "";
+
+
+    schedules.forEach(
+        (item, index) => {
+
+            const div =
+                document.createElement("div");
+
+            div.className =
+                "legend-item";
+
+
+            div.innerHTML = `
+
+                <div class="legend-icon">
+                    ${item.icon}
+                </div>
+
+                <div>
+                    第 ${index + 1} 天
+                    · ${item.name}
+                </div>
+
+            `;
+
+
+            legend.appendChild(div);
+
+        }
+    );
+
+}
+
+
+/* ============================================
+   深色模式
+============================================ */
+
+function toggleTheme() {
+
+    document.body.classList.toggle(
+        "dark"
+    );
+
+
+    const dark =
+        document.body.classList.contains(
+            "dark"
+        );
+
+
+    document.getElementById(
+        "themeButton"
+    ).textContent =
+        dark
+        ? "☀️"
+        : "🌙";
+
+
+    localStorage.setItem(
+        "theme",
+        dark
+        ? "dark"
+        : "light"
+    );
+
+}
+
+
+/* ============================================
+   读取主题
+============================================ */
+
+if (
+    localStorage.getItem("theme")
+    ===
+    "dark"
+) {
+
+    document.body.classList.add(
+        "dark"
+    );
+
+    document.getElementById(
+        "themeButton"
+    ).textContent =
+        "☀️";
+
+}
+
+
+/* ============================================
+   初始化
+============================================ */
+
+// 默认显示今天
+
+showDate(
+    new Date()
+);
+
+</script>
+
+</body>
+</html>
+```
